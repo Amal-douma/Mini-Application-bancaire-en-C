@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1702161520 source:c:\users\amal\desktop\mini-application-bancaire-en-c\main.c
+	<stdio.h>
+	<stdlib.h>
+
