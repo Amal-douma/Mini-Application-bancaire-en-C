@@ -1,41 +1,24 @@
+#include "gestionBanque.h"
 #include <stdio.h>
 #include <stdlib.h>
-#define CMAX 10 // Constante
+#include <string.h>
+#include <ctype.h>
+
 int x, choix;
-//structure
-typedef struct SClient
-{
-    int Code_cli;
-    char Nom [CMAX];
-    char Prenom [CMAX];
-}SClient;
 
+int nbClient=0;
+SClient clients[20];
+SCompte comptes[20];
 
-int comparer (const void* a, const void* b)
+//Utilisée par la fonction de tri qsort pour trier le tableau de clients par ordre alphabétique du nom
+
+int comparer (const void* a, const void* b)// prend deux pointeur a et b de type sclient
 {
-    const SClient *c1 = a ;
+    const SClient *c1 = a ; // const indique que les données pointées ne seront pas modifiées.
     const SClient *c2 = b ;
     return strcmp(c1->Nom, c2->Nom); // comparer deux string et retourner les premiere en ordre alphabetique
 }
 
- typedef struct Date
- {
-     int Jour ;
-     int Mois ;
-     int Annee;
- }Date ;
-
- typedef struct SCompte
- {
-     int code_cpt;
-     int code_cli;  //forignkey
-     int somme ;
-     struct Date d_compte ;
- }SCompte;
-
-// Tableau de compte et tableau de client
-SClient clients[20];
-SCompte comptes[20];
 
 // Menu
  void menu ()
@@ -50,58 +33,9 @@ SCompte comptes[20];
         scanf("%d", &choix );
         sous_menu(choix);
     }
-
-
 }
 
 // SOus menu
-/*void sous_menu(int a)
-{
-    if (a==1)
-    {
-        printf("1- Ajouter Client\n");
-        printf("2- Modifier Client\n");
-        printf("3- Supprimer Client\n");
-        printf("4- Afficher Client\n");
-        printf("5- Retour\n");
-        printf("Choisir un sous menu : ");
-        scanf("%d",&x);
-        gere_client(x);
-    }else if (a==2)
-    {
-        printf("1- Ajouter Compte\n");
-        printf("2- Rechercher Compte\n");
-        printf("3- Afficher la liste Compte\n");
-        printf("4- Supprimer comptes\n");
-        printf("5- Retour\n");
-        printf("Choisir un sous menu : ");
-        scanf("%d",&x);
-        //gere_compte(x);
-
-    }else if (a==3)
-    {
-        printf("1- Retrait d'argent\n");
-        printf("2- Versement d'argent\n");
-        printf("3- Retour\n");
-        printf("Choisir un sous menu : ");
-        scanf("%d",&x);
-        //gere_Operation(x);
-    } else if (a==4)
-    {
-        printf("Au revoir");
-        return 0;
-
-    }else
-    {
-        printf("Mauvais choix\n ");
-       printf("Choisir le menu : ");
-        scanf("%d", &choix );
-        sous_menu(choix);
-    }
-}
-*/
-
-
 void sous_menu(int a)
 {
     switch (a)
@@ -150,27 +84,7 @@ void sous_menu(int a)
 void gere_client(int a )
 {
     //Ajoute Client
-    /*if (a==1)
-    {
-      struct SClient client;
-      FILE *file ;
-
-      printf("Code Client :" );
-      scanf("%d",&client.Code_cli);
-      printf("Nom Client :" );
-      scanf("%s",&client.Nom);
-      printf("Prenom Client :" );
-      scanf("%s",&client.Prenom);
-
-      file =fopen("client.txt","a");
-      fwrite(&client,sizeof(client),1,file);
-      if (fwrite !=0)
-          printf("Client ajouter avec succes");
-      else
-          printf("erreur");
-      fclose(file);
-    }
-*/
+    //fonction de verification si code existe ou pas
 int codeClientExisteDeja(int codeClient)
 {
     FILE *file = fopen("client.txt", "r");
@@ -275,42 +189,6 @@ if (a == 1)
       }
       //Suprimmer client
 
-
-    /*  else if (a==3)
-      {
-          struct SClient client;
-          int code;
-          FILE *file;
-
-          printf("Code client a supprimer : "); //identifier du client qui modifier
-          scanf("%d",&code);
-
-          file=fopen("client.txt","r");
-
-            int nbClient=0;
-
-            while(fread(&client,sizeof(struct SClient),1,file))
-            {
-            clients[nbClient]=client;
-            nbClient++;
-             }
-
-            fclose(file);
-            remove("client.txt"); // supprimer tableau et toute les information dans un tableau
-
-            FILE * nf;
-            nf=fopen("nv.txt","a"); // new fichier a pour existe nv fichier
-            for(int i=0 ; i<nbClient;i++)
-            {
-                if(clients[i].Code_cli!= code)
-                     fwrite(&clients[i],sizeof(clients[i]),1,nf);
-                     printf("Suprimer avec succes");
-            }
-            fclose(nf);
-            rename("nv.txt","client.txt");
-      }
-*/
-
 else if (a == 3)
 {
     FILE *file;
@@ -377,18 +255,92 @@ else if (a == 3)
 }
 
 
+
 void gere_compte(int a)
 {
     // Ajouter Compte
+//Code compte deja existe
+int codeCompteExisteDeja(int codeCompte)
+{
+    FILE *file = fopen("compte.txt", "r");
+    if (file == NULL)
+    {
+        printf("Erreur lors de l'ouverture du fichier\n");
+        return 0;
+    }
+
+    struct SCompte compte;
+
+    while (fread(&compte, sizeof(compte), 1, file) == 1)
+    {
+        if (compte.code_cpt == codeCompte)
+        {
+            fclose(file);
+            return 1; // Code compte trouvé
+        }
+    }
+
+    fclose(file);
+    return 0; // Code compte non trouvé
+}
+
+
+int codeClientExisteDansTableau(int codeClient)
+{
+
+      FILE *file = fopen("client.txt", "r");
+
+    if (file == NULL)
+    {
+        printf("Erreur lors de l'ouverture du fichier\n");
+        return 0;
+    }
+
+    struct SClient client;
+
+    while (fread(&client, sizeof(struct SClient), 1, file) == 1)
+    {
+        if (client.Code_cli == codeClient)
+        {
+            fclose(file);
+            return 1; // Code client trouvé dans le fichier
+        }
+    }
+
+    fclose(file);
+    return 0; // Code client non trouvé dans le fichier
+}
+
+
     if (a==1)
     {
         struct SCompte compte;
         FILE *file;
 
+         do
+    {
         printf("Code Compte : ");
         scanf("%d", &compte.code_cpt);
-        printf("Code Client : ");
+
+        if (codeCompteExisteDeja(compte.code_cpt))
+        {
+            printf("Le code compte existe déjà. Veuillez en choisir un autre.\n");
+        }
+
+    } while (codeCompteExisteDeja(compte.code_cpt));
+
+    do {
+            printf("Code Client : ");
         scanf("%d", &compte.code_cli);
+
+    if (!codeClientExisteDansTableau(compte.code_cli))
+        {
+            printf("Le code client n'existe pas dans le tableau des clients. Veuillez en choisir un autre.\n");
+        }
+
+    } while (!codeClientExisteDansTableau(compte.code_cli));
+
+
         printf("Somme Compte : ");
         scanf("%d", &compte.somme);
 
@@ -404,11 +356,19 @@ void gere_compte(int a)
             scanf("%d", &compte.d_compte.Mois);
         } while (compte.d_compte.Mois < 1 || compte.d_compte.Mois > 12);
 
-        do
-        {
-            printf("Annee (4 chiffres) : ");
-            scanf("%d", &compte.d_compte.Annee);
-        } while (compte.d_compte.Annee < 1000 || compte.d_compte.Annee > 9999);
+
+          do {
+        printf("Annee (4 chiffres entre 2023 ET 2027) : ");
+        if (scanf("%4d", &compte.d_compte.Annee) != 1) {
+            // La saisie n'est pas un entier
+            printf("Saisie invalide. Entrez un entier de 4 chiffres.\n");
+            // Vider la mémoire tampon d'entrée
+            while (getchar() != '\n');
+        } else if (compte.d_compte.Annee < 2023 || compte.d_compte.Annee > 2030) {
+            // L'entier n'a pas 4 chiffres
+            printf("Saisie invalide. Entrez un entier de 4 chiffres.\n");
+        }
+    } while (compte.d_compte.Annee < 2023 || compte.d_compte.Annee > 2030);
 
         file = fopen("compte.txt", "a");
         fwrite(&compte, sizeof(compte), 1, file);
@@ -473,36 +433,6 @@ void gere_compte(int a)
 
     //SUprrimer compte
     if (a==4)
-    /*{ {
-        struct SCompte compte;
-        int code;
-        FILE *file;
-
-        printf("Code Compte a supprimer : ");
-        scanf("%d", &code);
-
-        file = fopen("compte.txt", "r");
-
-        int nb = 0;
-
-        while(fread(&compte, sizeof(struct SCompte), 1, file)) {
-            comptes[nb] = compte;
-            nb++;
-        }
-        fclose(file);
-        remove("compte.txt");
-
-        FILE *nf;
-        nf = fopen("nv.txt", "a");
-        for ( int i=0 ; i<nb ; i++)
-        {
-            if (comptes[i].code_cpt != code)
-                fwrite(&comptes[i], sizeof(comptes[i]), 1, nf);
-        }
-        fclose(nf);
-        rename("nv.txt", "compte.txt");
-    }*/
-
     {
     FILE *file;
     struct SCompte compte;
@@ -657,18 +587,13 @@ else if (a==5)
         }
         fclose(nf);
         rename("nv.txt", "compte.txt");
-
     }
-
-
      //RETOUR
      else if (a==3)
     {
         menu();
     }
-
  }
-
 
 int main()
 {

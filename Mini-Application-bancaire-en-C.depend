@@ -1,5 +1,10 @@
 # depslib dependency file v1.0
-1702161520 source:c:\users\amal\desktop\mini-application-bancaire-en-c\main.c
+1702731076 source:c:\users\amal\desktop\mini-application-bancaire-en-c\main.c
+	"gestionBanque.h"
 	<stdio.h>
 	<stdlib.h>
+	<string.h>
+	<ctype.h>
+
+1702648800 c:\users\amal\desktop\mini-application-bancaire-en-c\gestionbanque.h
 
